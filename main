@@ -3,34 +3,57 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import pandas_datareader as pdr
 
-def moving_avg(price, rate):
-    return price.rolling(rate).mean() #rolling is an average for a window of data. in this case rolling will be rates
-
-def bollinger_bands(price, rate=20):
-    sma =  moving_avg(price,rate)
-    std = price.rolling(rate).std()
-    high_bolling = sma+std * 2 #calculates the upper band
-    low_bolling = sma - std * 2 #calcs the bottom band
-    return high_bolling, low_bolling
-
-stock = 'BTC' #really just put whatever symbol you need to calculate
+stock = 'AMAZ' #really just put whatever symbol you need to calculate
 
 data = pdr.DataReader(stock, 'yahoo', '2021-01-01', '2021-12-04') #lowkey have no idea how to import anything but yahoo, get obi to take out yahoo and import finn
 
 data.index = np.arange(data.shape[0]) #converts indext to arrays
 
-endprices = data['Close']
+period = 20
 
-high_bolling, low_bolling = bollinger_bands(endprices)
+#defining simple moving average
+data['SMA'] = data['Close'].rolling(window=period).mean()
 
+#defining standard deviation
+data['SD'] = data['Close'].rolling(window=period).std()
+#calc upper bollinger band
+data['Upper'] = data['SMA'] + (data['SD'] * 2)
+
+#calc lower bollinger band
+data['Lower'] = data['SMA'] - (data['SD'] * 2)
+
+
+
+def signals(nums):
+    buy_signal = []
+    sell_signal = []
+
+    for i in range(len(nums['Close'])):
+        if nums['Close'][i] > nums['Upper'][i]: # if your val is higher than the upper bollinger then sell
+            buy_signal.append(np.nan) #not a number, since it's only signalling to sell
+            sell_signal.append(nums['Close'][i])
+        elif nums['Close'][i] < nums['Lower'][i]: #vice versa, this is where you buy
+            buy_signal.append(nums['Close'][i])
+            sell_signal.append(np.nan)
+        else:
+            buy_signal.append(np.nan) #dont do anything here
+            sell_signal.append(np.nan)
+
+    return buy_signal,sell_signal
+
+#create buy and sell singals
+
+data['Buy'] = signals(data)[0]
+
+data['Sell']=signals(data)[1]
 
 #plotting
 plt.title(stock + ' Bollinger Bands')
 plt.xlabel('Days')
 plt.ylabel('Closing Prices')
-plt.plot(endprices, label='Closing Prices')
-plt.plot(high_bolling, label='Bollinger Up', c='g')
-plt.plot(low_bolling, label='Bollinger Down', c='r')
+plt.plot(data['Close'], color='gold', label='Closing Price')
+plt.plot(data['SMA'], color='blue', label= 'Simple Moving Average')
+plt.plot(data['Buy'], color= 'g', label='Buy', marker= '^')
+plt.plot(data['Sell'], color='r',label= 'Sell', marker='v')
 plt.legend()
 plt.show()
-

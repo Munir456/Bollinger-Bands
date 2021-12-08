@@ -1,0 +1,36 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import pandas_datareader as pdr
+
+def moving_avg(price, rate):
+    return price.rolling(rate).mean() #rolling is an average for a window of data. in this case rolling will be rates
+
+def bollinger_bands(price, rate=20):
+    sma =  moving_avg(price,rate)
+    std = price.rolling(rate).std()
+    high_bolling = sma+std * 2 #calculates the upper band
+    low_bolling = sma - std * 2 #calcs the bottom band
+    return high_bolling, low_bolling
+
+stock = 'BTC' #really just put whatever symbol you need to calculate
+
+data = pdr.DataReader(stock, 'yahoo', '2021-01-01', '2021-12-04') #lowkey have no idea how to import anything but yahoo, get obi to take out yahoo and import finn
+
+data.index = np.arange(data.shape[0]) #converts indext to arrays
+
+endprices = data['Close']
+
+high_bolling, low_bolling = bollinger_bands(endprices)
+
+
+#plotting
+plt.title(stock + ' Bollinger Bands')
+plt.xlabel('Days')
+plt.ylabel('Closing Prices')
+plt.plot(endprices, label='Closing Prices')
+plt.plot(high_bolling, label='Bollinger Up', c='g')
+plt.plot(low_bolling, label='Bollinger Down', c='r')
+plt.legend()
+plt.show()
+

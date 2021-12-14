@@ -5,8 +5,7 @@ import pandas_datareader as pdr
 
 stock = 'AMAZ' #really just put whatever symbol you need to calculate
 
-data = pdr.DataReader(stock, 'yahoo', '2021-01-01', '2021-12-04') #lowkey have no idea how to import anything but yahoo, get obi to take out yahoo and import finn
-
+data = pdr.DataReader(stock, 'yahoo', '2021-01-01', '2021-12-04') 
 data.index = np.arange(data.shape[0]) #converts indext to arrays
 
 period = 20
